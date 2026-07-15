@@ -8,6 +8,7 @@ import { ProgressSteps } from '@/components/ui/progress-bar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { UploadCloud, FileSpreadsheet, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { ValidationErrorList } from '@/components/ui/validation-error-list';
+import { Pagination } from '@/components/ui/Pagination';
 import { cn } from '@/lib/utils';
 
 const SCHEMA_LABELS: Record<UploadSchemaKind, { title: string; description: string; example: string }> = {
@@ -38,6 +39,8 @@ export function UploadForm({ kind, onUploaded }: { kind: UploadSchemaKind; onUpl
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [step, setStep] = React.useState(0);
+  const [page, setPage] = React.useState(1);
+  const [limit, setLimit] = React.useState(50);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const label = SCHEMA_LABELS[kind];
 
@@ -45,6 +48,7 @@ export function UploadForm({ kind, onUploaded }: { kind: UploadSchemaKind; onUpl
     try {
       const result = await parseFile(file);
       setParsed(result);
+      setPage(1);
       const missing = validateColumns(kind, result.headers);
       setMissingColumns(missing);
       const errors = missing.length === 0 ? validateRows(kind, result.rows) : [];
@@ -191,7 +195,7 @@ export function UploadForm({ kind, onUploaded }: { kind: UploadSchemaKind; onUpl
               <>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
-                  {parsed.fileName} &mdash; {parsed.rowCount} rows detected. Preview of the first 5:
+                  {parsed.fileName} &mdash; {parsed.rowCount} rows detected.
                 </div>
 
                 <div className="overflow-x-auto rounded-md border border-border scrollbar-thin">
@@ -206,8 +210,8 @@ export function UploadForm({ kind, onUploaded }: { kind: UploadSchemaKind; onUpl
                       </tr>
                     </thead>
                     <tbody>
-                      {parsed.rows.slice(0, 5).map((row, i) => (
-                        <tr key={i} className="border-t border-border">
+                      {parsed.rows.slice((page - 1) * limit, page * limit).map((row, i) => (
+                        <tr key={i} className="border-t border-border hover:bg-muted/50">
                           {parsed.headers.map((h) => (
                             <td key={h} className="whitespace-nowrap px-3 py-2">
                               {row[h]}
@@ -218,6 +222,17 @@ export function UploadForm({ kind, onUploaded }: { kind: UploadSchemaKind; onUpl
                     </tbody>
                   </table>
                 </div>
+
+                {parsed.rows.length > 0 && (
+                  <Pagination
+                    page={page}
+                    totalPages={Math.max(1, Math.ceil(parsed.rows.length / limit))}
+                    limit={limit}
+                    total={parsed.rows.length}
+                    onPageChange={setPage}
+                    onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                  />
+                )}
               </>
             )}
 

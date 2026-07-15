@@ -10,6 +10,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/components/ui/ToastProvider';
 import { useMutation } from '@/hooks/use-mutation';
+import { Pagination } from '@/components/ui/Pagination';
 
 const SEARCH_KEYS = ['name', 'category', 'location', 'type'] as const;
 
@@ -47,9 +48,21 @@ export function ManageList<T extends { id: string }>({
 }) {
   const [search, setSearch] = React.useState('');
   const debouncedSearch = useDebounce(search, 200);
+  const [page, setPage] = React.useState(1);
+  const [limit, setLimit] = React.useState(10);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   const filtered = React.useMemo(
     () => items.filter((item) => matchesSearch(item, debouncedSearch)),
     [items, debouncedSearch]
+  );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / limit));
+  const paginatedItems = React.useMemo(
+    () => filtered.slice((page - 1) * limit, page * limit),
+    [filtered, page, limit]
   );
   const { toast } = useToast();
   const [pending, setPending] = React.useState<T | null>(null);
@@ -121,26 +134,38 @@ export function ManageList<T extends { id: string }>({
             description=""
           />
         ) : (
-          <ul className="flex flex-col divide-y divide-border">
-            {filtered.map((item) => (
-              <li key={item.id} className="flex items-center justify-between gap-3 py-2.5">
-                <span className="min-w-0 truncate text-sm text-foreground">{describe(item)}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0"
-                  aria-label={`Remove ${noun} ${describe(item)}`}
-                  onClick={() => {
-                    setError(null);
-                    setPending(item);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-4">
+            <ul className="flex flex-col divide-y divide-border">
+              {paginatedItems.map((item) => (
+                <li key={item.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="min-w-0 truncate text-sm text-foreground">{describe(item)}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    aria-label={`Remove ${noun} ${describe(item)}`}
+                    onClick={() => {
+                      setError(null);
+                      setPending(item);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {filtered.length > 0 && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                limit={limit}
+                total={filtered.length}
+                onPageChange={setPage}
+                onLimitChange={(l) => { setLimit(l); setPage(1); }}
+              />
+            )}
+          </div>
         )}
       </CardContent>
 
