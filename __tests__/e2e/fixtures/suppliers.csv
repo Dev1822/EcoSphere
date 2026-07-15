@@ -1,0 +1,5 @@
+name,location,category,latitude,longitude
+"Acme Corp",New York,"Manufacturing",40.7128,-74.0060
+"Global Tech","San Francisco, CA","IT Services",37.7749,-122.4194
+"Missing Location Co",,"Logistics",,
+"Special Chars & Co.",London,"Services - (B2B)",51.5074,-0.1278
