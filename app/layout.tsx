@@ -7,6 +7,7 @@ import { ErrorLogger } from '@/components/shared/error-logger';
 import { SkipToContent } from '@/components/shared/skip-to-content';
 import { ThemeProvider } from '@/components/shared/theme-provider';
 import { THEME_INIT_SCRIPT } from '@/components/shared/theme-script';
+import { ScrollToTop } from '@/components/shared/scroll-to-top';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap', weight: ['500', '600', '700'] });
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <main id="main-content" tabIndex={-1}>
                 {children}
               </main>
+              <ScrollToTop />
               <ErrorLogger />
             </ToastProvider>
           </ThemeProvider>
